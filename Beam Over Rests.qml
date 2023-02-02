@@ -1,5 +1,5 @@
-//Beam Over Rests
-//v0.6 (20230202)
+// Beam Over Rests
+// v0.6 (20230202)
 //
 
 // Beaming rules source:
@@ -19,23 +19,6 @@
 // - Beam functions: Beam note values according to parameters from applyBeamingRules
 //7. posbeamrests (in progress): automatically repositions notes and beams
 //8. onrun function: combines above functions to correctly beam over rests
-
-// To Do (Finish by v1.0, presumably):
-//		fix various bugs
-//		split applyBeamingRules into separate functions
-//		debug forceBeamM
-//		primitive settings window
-//		user-made time signature presets
-//		remove excessive parameters from functions
-//		only beam notes in measure
-//		more time signature presets
-
-// Later release(s):
-//		Overhaul of settings window: Proper GUI, apply score-specific settings
-//		Addition of complex time signatures
-//      Autoadjustment of rest + beam positions
-//      Override default NOTE beaming with own settings (would require a substantial rewrite of beaming functions)
-//      its theoretically possible to combine all the beam functions and create something scalable from 8ths to 1024ths.
 
 import QtQuick 2.9;
 import MuseScore 3.0;
