@@ -1,6 +1,5 @@
 // Beam Over Rests
 // v0.6 (20230202)
-//
 
 // Beaming rules source:
 // Gould, Elaine (2011). Behind Bars: The definitive guide to music notation (1st ed.). Faber Music Ltd.
@@ -17,8 +16,8 @@
 // - applyBeamingRules: applies beaming rules to a measure based on engraving rules,
 //   user settings and mapMeasure values. Cleans up some errors from the beaming functions.
 // - Beam functions: Beam note values according to parameters from applyBeamingRules
-//7. posbeamrests (in progress): automatically repositions notes and beams
-//8. onrun function: combines above functions to correctly beam over rests
+// - posBeamRests (in progress): automatically repositions notes and beams
+// - onRun function: combines above functions to correctly beam over rests
 
 import QtQuick 2.9;
 import MuseScore 3.0;
@@ -163,8 +162,7 @@ MuseScore {
         if (mnTsD[mno] == 8) {
             //3X/8 (3/8, 6/8, 9/8, ...)
             if (mnTsN[mno] % 3 == 0) {
-				//forceBeamG = true;
-				//forceBeamG = false;                  
+				//forceBeamG = true;     
 		  
 				//32nds
 				var splitBeam1 = [2, 4, 6, 8, 10];
