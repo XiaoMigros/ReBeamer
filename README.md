@@ -42,7 +42,7 @@ Here are some things you can do to avoid issues with the plugin:
 
 ### Customisation
 To customise how the plugin runs, you will need to edit the code. Below, the easily changeable parameters are documented:
-#### Lines 91-115: General Settings
+#### [Lines 91-115: General Settings](https://github.com/XiaoMigros/beam-over-rests/blob/main/Beam%20Over%20Rests.qml#L91)
 - forceBeamM: Whether all rests within a measure should be beamed together (only partially working). Can be set to either true or false.
 - forceBeamG: Whether all rests within a group should be beamed together, regardless of context. Can be set to either true or false.
 - beam8: Whether 8th rests are beamed over. Can be set to either true or false.
@@ -58,7 +58,7 @@ To customise how the plugin runs, you will need to edit the code. Below, the eas
 - beamLongerTuplets: Whether tuplets with a base length of 1/4th note, 1/2 note, etc. should still be beamed over when possible. Can be set to either true or false.
 - tupletForceBeamG-tupletBeam32: The same as above, only for tuplets. Can be set to either true or false.
 
-#### Lines 117-281: Time Signature Settings
+#### [Lines 117-281: Time Signature Settings](https://github.com/XiaoMigros/beam-over-rests/blob/main/Beam%20Over%20Rests.qml#L117)
 Setting any of the above values in here will apply them only to a specific time signature. Time signatures are currently split into 4 groups: X/4 time signatures, compound X/8 time signatures, other X/8 time signatures, and X/2 time signatures.
 The variables below are adapted to each time signature:
 - splitBeam1: the 16th subdivisions within 32nd note beams. After each number of 32nds, the plugin will add a 16th subdivision. If no subdivisions are wanted, delete all the numbers (leaving [];)
