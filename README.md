@@ -1,7 +1,7 @@
-# Beam Over Rests
+# Beam Over Rests (v0.6)
 A plugin for MuseScore that beams over rests, following preset rules.
 This plugin is still in a primitive testing stage, and is missing many key features.
-Please read [the plugin's wiki](https://github.com/XiaoMigros/beam-over-rests/README.md#Usage) to get the most out of it, and to avoid crashes.
+Please read [the following documentation](https://github.com/XiaoMigros/beam-over-rests#usage) to get the most out of it, and to avoid crashes.
 
 ## Features
  - Beam over Rests in a score, according to preset rules
