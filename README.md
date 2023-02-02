@@ -2,6 +2,7 @@
 A plugin for MuseScore that beams over rests, following preset rules.
 This plugin is still in a primitive testing stage, and is missing many key features.
 Please read [the following documentation](https://github.com/XiaoMigros/beam-over-rests#usage) to get the most out of it, and to avoid crashes.
+MuseScore 3.6 is required, 4.x has not yet been tested.
 
 ## Features
  - Beam over Rests in a score, according to preset rules
@@ -25,7 +26,6 @@ Please read [the following documentation](https://github.com/XiaoMigros/beam-ove
 
 ## Installation
 Download and move 'Beam Over Rests.qml' to MuseScore's plugins folder.
-Currently MuseScore 4 does not detect the plugin.
 
 For more help installing this plugin, visit [this page](https://musescore.org/en/handbook/3/plugins#installation).
 
