@@ -1,5 +1,8 @@
 // Beam Over Rests
-// v0.6 (20230202)
+
+// Changelog:
+//	v0.6.1 (20230203):	Improved 8th beaming rules
+//	v0.6 (20230202):	Beta Release
 
 // Beaming rules source:
 // Gould, Elaine (2011). Behind Bars: The definitive guide to music notation (1st ed.). Faber Music Ltd.
@@ -21,13 +24,13 @@
 
 import QtQuick 2.9;
 import MuseScore 3.0;
-import Qt.labs.settings 1.0
+//import Qt.labs.settings 1.0
 
 MuseScore {
     description: "This plugin adds beams over rests, following standard music notation." + 
     "\nBest applied at the end of the score creation process, and after running 'Tools/Regroup Rhythms'.";
     requiresScore: true;
-    version: "0.6";
+    version: "0.6.1";
     menuPath: "Tools.Beam Over Rests";
 	
 	Component.onCompleted : {
@@ -162,7 +165,7 @@ MuseScore {
         if (mnTsD[mno] == 8) {
             //3X/8 (3/8, 6/8, 9/8, ...)
             if (mnTsN[mno] % 3 == 0) {
-				//forceBeamG = true;     
+				forceBeamG = true;     
 		  
 				//32nds
 				var splitBeam1 = [2, 4, 6, 8, 10];
@@ -832,10 +835,15 @@ MuseScore {
 			if (e && e.type == Element.CHORD && e.duration.numerator / e.duration.denominator < 0.25) {
 				notes.push(i);
 				}//if
+		}//for
+		curs.rewindToTick(startTick);
+		while (curs.element && curs.tick && curs.tick < mstart[mno] + mlen[mno]) {
+			var e = curs.element;
 			if (forceBeamG == false && e && e.type == Element.CHORD && e.duration.numerator / e.duration.denominator < 0.125) {
 				actBeam8 = false;
 				}//if
-		}//for
+			curs.next();
+		}
 		//console.log("8ths will be beamed: " + actBeam8)
 		if (actBeam8 && notes.length > 1) {
 			notes.sort()
