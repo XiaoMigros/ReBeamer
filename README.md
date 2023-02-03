@@ -42,7 +42,7 @@ If the plugin crashes, an error message will appear at the end of the score.
 ### Optimisation
 Here are some things you can do to avoid issues with the plugin:
 * Regroup rhythms: The plugin works best when all of your sheet's rhythms are notated correctly. If you know what you're doing, great! If you don't, run 'Tools/Regroup Rhythms' before running the plugin.
-* 2nd+ Voices: The plugin won't work correctly if there are any deleted rests in voices 2-4. If you don't want the rest to be seen, make it invisible instead.
+* 2nd+ Voices: The plugin won't work correctly if there are any deleted rests in voices 2-4. If you don't want a rest to be seen, make it invisible instead.
 
 ### Customisation
 To customise how the plugin runs, you will need to edit the code. Below, the easily changeable parameters are documented:
