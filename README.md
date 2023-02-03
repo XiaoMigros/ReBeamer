@@ -24,6 +24,10 @@ MuseScore 3.6 is required, 4.x has not yet been tested.
 - Autoadjustment of rest + beam positions
 - Option to rebeam all notes as well as rests
 
+## Changelog
+- v0.6.1 (20230203): Improved 8th beaming function
+- v0.6.0 (20230202): Beta release
+
 ## Installation
 Download and move 'Beam Over Rests.qml' to MuseScore's plugins folder.
 
