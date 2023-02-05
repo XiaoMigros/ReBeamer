@@ -35,7 +35,7 @@ MuseScore {
 	
 	Component.onCompleted : {
         if (mscoreMajorVersion >= 4) {
-			title = qsTr("Score Duration") ;
+			title = qsTr("Beam Over Rests") ;
 			//thumbnailName = "logo.png";
 			categoryCode = "notes-rests";
         } //if
