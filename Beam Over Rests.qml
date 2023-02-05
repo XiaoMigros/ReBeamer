@@ -1,8 +1,9 @@
 // Beam Over Rests
 
 // Changelog:
+//  v0.6.2 (20230205):  forceBeamM improvements and code restructuring
 //	v0.6.1 (20230203):	Improved 8th beaming rules
-//	v0.6 (20230202):	Beta Release
+//	v0.6.0 (20230202):	Beta Release
 
 // Beaming rules source:
 // Gould, Elaine (2011). Behind Bars: The definitive guide to music notation (1st ed.). Faber Music Ltd.
@@ -17,7 +18,7 @@
 // Plugin Structure:
 // - mapMeasures function: logs length, start, and time signature of every measure
 // - applyBeamingRules: applies beaming rules to a measure based on engraving rules,
-//   user settings and mapMeasure values. Cleans up some errors from the beaming functions.
+//   user settings and mapMeasure values. Runs other functions to clean up any mistakes.
 // - Beam functions: Beam note values according to parameters from applyBeamingRules
 // - posBeamRests (in progress): automatically repositions notes and beams
 // - onRun function: combines above functions to correctly beam over rests
@@ -95,7 +96,7 @@ MuseScore {
 		
 		//general
 		var forceBeamM = false; //beams everything in a measure together
-		var forceBeamG = false; //beams everything in a group together, useful for cut time, will force activation of beam8, beam16 and beam32
+		var forceBeamG = false; //beams everything in a(n 8th) group together, useful for cut time, will force activation of beam8, beam16 and beam32
 		
 		//regular beaming
 		var beam8 = true; //whether 8ths are beamed over in general
@@ -243,8 +244,7 @@ MuseScore {
 		//settings for X/2 and X/1 timesigs
 		if (mnTsD[mno] == 2) {
 			//console.log("X/2 detected")
-			//forceBeamG = true;
-			forceBeamG = false;
+			forceBeamG = true;
 			
 			//32nds
 			var splitBeam1 = [2, 4, 6]; //splits into 16th/32nd, 4 not necessarily needed
@@ -298,12 +298,40 @@ MuseScore {
 			tupletBeam8 = true;
 			tupletBeam16 = true;
 			tupletBeam32 = true;
+			//only runs 8th to preserve 16th and 32nd subdivisions
 			eighth(mstart[mno], (mnTsN[mno] / mnTsD[mno])*8, mstart, mlen, maTsN, maTsD, mno, staff, voice, forceBeamG, forceBeamM);
+			
+			//if notes are outside of the 32nd/16th groups
+			cursor.rewindToTick(mstart[mno])
+			cursor.voice = voice;
+			cursor.staffIdx = staff;
+			while (cursor.element && cursor.tick < mstart[mno] + mlen[mno]) {
+				if (cursor.element && cursor.element.type == Element.REST && cursor.element.beamMode == 0) {
+					cursor.element.beamMode = 2;
+				}
+				if (cursor.element == Element.CHORD && cursor.element.beamMode <= 1) {
+					cursor.element.beamMode = 2;
+				}
+				cursor.next();
+			}
+			
 		}//if forceBeamM
             
 		//TUPLETS=============================================================================================================================
+		fBeamTuplets(m, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice, beamTuplets, beamToTuplets, beamFromTuplets, simplifyTuplets, beamLongerTuplets,
+			tupletForceBeamG, tupletBeam8, tupletBeam16, tupletBeam32, forceBeamM, forceBeamG, tuplet8unbeam, tuplet16unbeam, tuplet32unbeam, cursor)
 		//once these are in a time signature definition, complex timesigs can work
+		//====================================================================================================================================
 		
+		//APPLY CORRECTIONS===================================================================================================================
+		applyCorrections(m, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice, cursor)
+		//====================================================================================================================================
+		
+	} //applyBeamingRules
+    
+	function fBeamTuplets(m, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice, beamTuplets, beamToTuplets, beamFromTuplets, simplifyTuplets, beamLongerTuplets,
+			tupletForceBeamG, tupletBeam8, tupletBeam16, tupletBeam32, forceBeamM, forceBeamG, tuplet8unbeam, tuplet16unbeam, tuplet32unbeam, cursor) {
+				
 		//First unbeam them
 		cursor.rewindToTick(mstart[mno]);
 		cursor.voice = voice;
@@ -324,6 +352,7 @@ MuseScore {
 			  cursor.next();
 		}//while
 		
+		//rebeam them if required
 		if (beamTuplets) {
 			cursor.rewindToTick(mstart[mno]);
 			cursor.voice = voice;
@@ -397,9 +426,9 @@ MuseScore {
 						tupletDivNotes1 = false;
 						tupletDivNotes2 = true;
 						tupletDivNotesPlus = false; //split notes larger than 32nd into 8th/16th
-						/*tuplet = 1/8, tupletN*4
-						tuplet = 1/16, tupletN*2
-						tuplet = 1/32, tupletN*/
+						//tuplet = 1/8, tupletN*4
+						//tuplet = 1/16, tupletN*2
+						//tuplet = 1/32, tupletN
 						
 						if (tupletBeam32) {
 							var number = tupletN * (32*tupletBaseLength);
@@ -486,6 +515,7 @@ MuseScore {
 			}//while
 		}//if beamtuplets
 		
+		//beam to tuplets
 		if (beamToTuplets == true) {
 			cursor.rewindToTick(mstart[mno]);
 			cursor.voice = voice;
@@ -531,6 +561,7 @@ MuseScore {
 			} //while
 		} //if beamtotuplets
 		
+		//beam from tuplets
 		if (beamFromTuplets == true) {
 			cursor.rewindToTick(mstart[mno]+mlen[mno]);
 			cursor.voice = voice;
@@ -544,8 +575,13 @@ MuseScore {
 					if (cursor.element && ((cursor.element.beamMode != 0 && cursor.element.type == Element.REST) ||
 					(cursor.element.type == Element.CHORD && cursor.element.duration.numerator/cursor.element.duration.denominator < 0.25))) {
 						e.beamMode = 5;
+						//show 8th subdivisions if tuplet and note are a 16th or smaller
+						if (e.type == Element.CHORD && cursor.element.type == Element.CHORD && 
+						e.duration.numerator/e.duration.denominator < 0.125 && cursor.element.duration.numerator/cursor.element.duration.denominator < 0.125) {
+							cursor.element.beamMode = 5;
+						}
 						cursor.prev();
-						cursor.prev()
+						cursor.prev();
 						while (cursor.element && cursor.element.type == Element.REST) {
 							cursor.element.beamMode = 5;
 							cursor.prev();
@@ -612,6 +648,7 @@ MuseScore {
 					//actual value of one base unit in ticks
 					
 					cursor.rewindToTick(tupletStart);
+					var e = cursor.element;
 					
 					if (tupletBaseLength >= 0.125) {
 						for (var i = 0; i < tuplet8unbeam.length; ++i) {
@@ -761,59 +798,8 @@ MuseScore {
 				cursor.prev();
 			}
 		}
-		
-		//====================================================================================================================================
-		
-		//remove rogue beams from previously shortened measure
-		cursor.rewindToTick(mstart[mno] + mlen[mno]);
-		cursor.voice = voice;
-		cursor.staffIdx = staff;
-		if (cursor.element) {
-			  cursor.element.beamMode = 0;
-			  }
-		cursor.prev();
-		while (cursor.element && cursor.element.type == Element.REST) {
-			  cursor.element.beamMode = 0;
-			  cursor.prev();
-			  }//while
-		
-		//remove beams to and from >= 4th notes
-		cursor.rewindToTick(mstart[mno]);
-		cursor.voice = voice;
-		cursor.staffIdx = staff;
-		while (cursor.element && cursor.tick < (mstart[mno] + mlen[mno])) {
-			//runs through every note in measure
-			//have to use mstart + mlen because not all selections will have more than one mno
-			
-			if (cursor.element.type == Element.CHORD && cursor.element.duration.numerator / cursor.element.duration.denominator >= 0.25) {
-				//if a note is 4th or longer, undo preceding rests
-				
-				cursor.element.beamMode = 0;
-				var temptick = cursor.tick
-				//console.log("UNBEAMED")
-				
-				cursor.prev();
-				while (cursor.element && cursor.element.type == Element.REST && cursor.tick >= mstart[mno]) {
-					cursor.element.beamMode = 0;
-					cursor.prev();
-				}//while
-				
-				//... and undo succeeding rests
-				cursor.rewindToTick(temptick)
-				
-				cursor.next();
-				while (cursor.element && cursor.element.type == Element.REST && cursor.tick < (mstart[mno] + mlen[mno])) {
-					cursor.element.beamMode = 0;
-					cursor.next();
-				}//while
-				
-				cursor.rewindToTick(temptick)
-			}//if
-			cursor.next();
-		}//while
-		
-	} //applyBeamingRules
-      
+	}
+	
     function eighth(startTick, number, mstart, mlen, maTsN, maTsD, mno, staff, voice, forceBeamG, forceBeamM) {
 		console.log("running eighth at " + startTick)
 		var curs = curScore.newCursor();     
@@ -1172,7 +1158,7 @@ MuseScore {
             }//thirtytwond
       
 	function tupletEighth(tupletStart, tupletEnd, number, btick, tupletN, tupletBaseLength, tupletBaseLengthActual, tupletForceBeamG, voice, staff) {
-		console.log("running eighth at " + tupletStart)
+		console.log("running tuplet eighth at " + tupletStart)
 		var curs = curScore.newCursor();     
 		curs.rewindToTick(tupletStart);
 		curs.voice = voice;
@@ -1217,10 +1203,10 @@ MuseScore {
 		}//actbeam8 noteslength
 	}//tuplet8th
 	  
-	function	tupletSixteenth(tupletStart, tupletEnd, number, btick, tupletN, tupletBaseLength, tupletBaseLengthActual,
+	function tupletSixteenth(tupletStart, tupletEnd, number, btick, tupletN, tupletBaseLength, tupletBaseLengthActual,
 				tupletSplitBeam, tupletDivNotes, tupletSplitBeamOverride, tupletBeam16,
 				beamToTuplets, beamFromTuplets, voice, staff) {
-		console.log("running sixteenth at " + tupletStart)
+		console.log("running tuplet sixteenth at " + tupletStart)
         var curs = curScore.newCursor();
         curs.rewindToTick(tupletStart);
         curs.voice = voice;
@@ -1339,11 +1325,11 @@ MuseScore {
         }//noteslength 
 	}//tuplet 16th
 	  
-	function	tupletThirtytwond(tupletStart, tupletEnd, number, btick, tupletN, tupletBaseLength, tupletBaseLengthActual,
+	function tupletThirtytwond(tupletStart, tupletEnd, number, btick, tupletN, tupletBaseLength, tupletBaseLengthActual,
 				tupletSplitBeam1, tupletSplitBeam2, tupletDivNotes1, tupletDivNotes2, tupletDivNotesPlus, tupletBeam32,
 				beamToTuplets, beamFromTuplets, voice, staff) {
 			
-			console.log("running thirtytwond at " + tupletStart);
+			console.log("running tuplet thirtytwond at " + tupletStart);
             var curs = curScore.newCursor();
             curs.rewindToTick(tupletStart);
             curs.voice = voice;
@@ -1495,16 +1481,96 @@ MuseScore {
             }//noteslength
 	}
 	
+	function applyCorrections(m, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice, cursor) {
+		
+		//remove rogue beams from previously shortened measure================================================================================
+		
+		cursor.rewindToTick(mstart[mno] + mlen[mno]);
+		cursor.voice = voice;
+		cursor.staffIdx = staff;
+		var addedRest = false;
+		if (cursor.element) {
+			cursor.element.beamMode = 0;
+		}
+		//this should make the function work for 2nd+ voices, but it won't add the rest!
+		/*if (! cursor.element) {
+			cursor.rewindToTick(mstart[mno] + mlen[mno]);
+			cursor.voice = voice;
+			cursor.staffIdx = staff;
+			cursor.addRest(true);
+			addedRest = true;
+		}*/
+		cursor.prev();
+		while (cursor.element && cursor.element.type == Element.REST && cursor.tick >= mstart[mno]) {
+			cursor.element.beamMode = 0;
+			cursor.prev();
+		}//while
+		/*if (addedRest == true) {
+			cursor.rewindToTick(mstart[mno] + mlen[mno])
+			cursor.voice = voice;
+			cursor.staffIdx = staff;
+			removeElement(cursor.element)
+		}*/
+		//====================================================================================================================================
+		
+		//remove rogue beams from front of measure (rarely needed)============================================================================
+		cursor.rewindToTick(mstart[mno]);
+		cursor.voice = voice;
+		cursor.staffIdx = staff;
+		while (cursor.element && cursor.element.type == Element.REST && cursor.tick < mstart[mno] + mlen[mno]) {
+			cursor.element.beamMode = 0;
+			cursor.next();
+		}//while
+		//====================================================================================================================================
+		
+		//remove beams to and from >= 4th notes===============================================================================================
+		cursor.rewindToTick(mstart[mno]);
+		cursor.voice = voice;
+		cursor.staffIdx = staff;
+		while (cursor.element && cursor.tick < (mstart[mno] + mlen[mno])) {
+			//runs through every note in measure
+			//have to use mstart + mlen because not all selections will have more than one mno
+			
+			if (cursor.element.type == Element.CHORD && cursor.element.duration.numerator / cursor.element.duration.denominator >= 0.25) {
+				//if a note is 4th or longer, undo preceding rests
+				
+				cursor.element.beamMode = 0;
+				var temptick = cursor.tick
+				//console.log("UNBEAMED")
+				
+				cursor.prev();
+				while (cursor.element && cursor.element.type == Element.REST && cursor.tick >= mstart[mno]) {
+					cursor.element.beamMode = 0;
+					cursor.prev();
+				}//while
+				
+				//... and undo succeeding rests
+				cursor.rewindToTick(temptick)
+				
+				cursor.next();
+				while (cursor.element && cursor.element.type == Element.REST && cursor.tick < (mstart[mno] + mlen[mno])) {
+					cursor.element.beamMode = 0;
+					cursor.next();
+				}//while
+				
+				cursor.rewindToTick(temptick)
+			}//if
+			cursor.next();
+		}//while
+		//====================================================================================================================================
+	}
+	
 	//not working yet
     function posBeamRests(m, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice) {
         var curso = curScore.newCursor();
         curso.voice = voice;
         curso.staffIdx = staff;
         curso.rewindToTick(mstart[mno]);
+		console.log("positioning beams..")
         while (curso.element && curso.tick < (mstart[mno]+mlen[mno])) {
             var e = curso.element;
-            if (e.type == Element.REST && e.beamPos) {
-                console.log(e.beamPos)
+            if (e.type == Element.REST && e.beam == true) {
+                console.log(e.beamPos + " BWmpos")
             }//if
             //else {console.log("badbeam")}
             curso.next();
@@ -1580,7 +1646,7 @@ MuseScore {
 				while (mno < mstart.length) {
 					console.log("At measure " + (mno+1))
 					applyBeamingRules(c.measure, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice);
-					//posBeamRests(c.measure, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice);
+					posBeamRests(c.measure, mstart, mlen, maTsN, maTsD, mnTsN, mnTsD, mno, staff, voice);
 					mno = mno + 1;
 					c.nextMeasure();
 				} //while
@@ -1589,6 +1655,6 @@ MuseScore {
 
 		removeElement(curScore.lastMeasure);
         console.log("end");
-        Qt.quit();
+        //Qt.quit(); test only
 	} //onrun
 } //MuseScore
