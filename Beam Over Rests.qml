@@ -1,7 +1,7 @@
 // Beam Over Rests
 
 // Changelog:
-//  v0.6.2 (20230205):  forceBeamM improvements and code restructuring
+//	v0.6.2 (20230205):  forceBeamM improvements and code restructuring
 //	v0.6.1 (20230203):	Improved 8th beaming rules
 //	v0.6.0 (20230202):	Beta Release
 
@@ -31,7 +31,7 @@ MuseScore {
     description: "This plugin adds beams over rests, following standard music notation." + 
     "\nBest applied at the end of the score creation process, and after running 'Tools/Regroup Rhythms'.";
     requiresScore: true;
-    version: "0.6.1";
+    version: "0.6.2";
     menuPath: "Tools.Beam Over Rests";
 	
 	Component.onCompleted : {
