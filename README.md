@@ -2,7 +2,10 @@
 A plugin for MuseScore that beams over rests, following preset rules.
 This plugin is still in a primitive testing stage, and is missing many key features.
 Please read [the following documentation](https://github.com/XiaoMigros/beam-over-rests#usage) to get the most out of it, and to avoid crashes.
-MuseScore 3.6 is required, 4.x has not yet been tested.
+MuseScore 3.6 or later is required.
+
+### MuseScore 4 Compatibility
+Due to the difference in how beaming works, this plugin currently has no effect in MuseScore 4. This will change in a later release.
 
 ## Features
  - Beam over Rests in a score, according to preset rules
@@ -17,6 +20,7 @@ MuseScore 3.6 is required, 4.x has not yet been tested.
 - More presets bundled in
 - Various bug fixes
 - More legible code structure
+- MuseScore 4 compatibility
 
 ### Later release(s):
 - Overhaul of settings window: Proper GUI, apply score-specific settings
