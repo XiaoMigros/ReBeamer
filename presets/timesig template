@@ -1,0 +1,55 @@
+//===================================================//
+//Custom Time Signature template for ReBeamer Plugin
+//Copyright (C) 2023 XiaoMigros
+//v 1.0
+//Changelog:
+//===================================================//
+
+// CODE STRUCTURE:
+//
+// - 3 arrays per timesig: 8th splitpoints, 16th splitpoints & 32nd splitpoints
+//   Splitpoints are where in the measure the beam is split
+//   the beam is split after X 8ths/16ths/32nds/ have occured in a measure
+//
+// - 2 8th subdivision arrays: 16th sub8 & 32nd sub8
+//   determines where to show the 8th subdivision in 16th and 32nd notes/rests
+//   functions the same way as the previous splitpoints
+//
+// - 1 16th subdivision array: 32nd sub16
+//
+// - Type variables:
+//   whether to change the beam for rests (1), notes (2), none (0), or both (3)
+//   sS8type = sixteenth sub 8 type, etc
+//
+// - beamType:
+//   Whether to (in general) beam rests (1), notes (2), nothing (0), or everything (3).
+//   Note: beamType does not override the subbeam types
+
+// INSTRUCTIONS:
+//
+// 1. Replace values as desired in the code below*:
+// - values are allowed to overlap (the smallest subdivisions will be prioritised)
+// - if no beam break is wanted, leave the brackets empty [].
+// - example below: alternate 4/4 settings that split 8ths to show all beats
+
+		if (numerator == 4 && denominator == 4) {
+			eighthSplit			= [2, 4, 6]
+			sixteenthSplit		= [4, 8, 12]
+			thirtytwondSplit	= [8, 16, 24]
+			sixteenthSplit8		= [2, (4), 6, (8), 10, 12, 14]
+			thirtytwondSplit8	= [4, 12, 20, 24, 28]
+			thirtytwondSplit16	= [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
+			beamType			= 3
+			sS8type				= 1
+			tS8type				= 3
+			tS16type			= 1
+		}
+
+//
+// 2. Copy and paste the code block into 'presets/timesigs.js' where specified ('paste your custom settings here', line 226)
+//
+// 3. Restart MuseScore for your changes to take effect.
+
+//*Alternatively you can write your own JavaScript code to auto-generate settings
+//Code doesnt have to be timesig specific, you can base it off whatever combinations of numerator / denominator you want
+//Feel free to look through the existing timesig code for a better understanding of it
