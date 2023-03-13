@@ -1,7 +1,7 @@
 # [ReBeamer (v0.7.0)](https://musescore.org/en/project/beam-over-rests)
 A plugin for MuseScore that rebeams music, following preset or custom rules. Automatically rebeam notes, rests, or tuplets!
 This plugin is still in a primitive testing stage, and is missing many key features.
-Please read [the following documentation](https://github.com/XiaoMigros/beam-over-rests#usage) to get the most out of it, and to avoid crashes.
+Please read the 'Usage' section below to get the most out of it
 MuseScore 3.6 or later is required.
 
 ## Features
