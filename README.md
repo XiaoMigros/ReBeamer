@@ -1,7 +1,10 @@
 # [ReBeamer (v0.7.0)](https://musescore.org/en/project/rebeamer)
 A plugin for MuseScore that rebeams music, following preset or custom rules. Automatically rebeam notes, rests, or tuplets!
+
 This plugin is still in a primitive testing stage, no warranty of any kind is provided.
+
 Please read the 'Usage' section below to get the most out of it
+
 MuseScore 3.5 or later is required.
 
 ## Features
