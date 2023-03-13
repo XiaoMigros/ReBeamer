@@ -22,7 +22,7 @@ Item {
 			id: helpButton;
 			text: "Help";
 			onClicked: {
-				Qt.openUrlExternally("https://github.com/xiaomigros/beam-over-rests#readme")
+				Qt.openUrlExternally("https://github.com/xiaomigros/rebeamer#readme")
 			}//onClicked
 		}//Button
 		
