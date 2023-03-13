@@ -27,7 +27,7 @@ MuseScore 3.5 or later is required.
 - completely rewritten beaming system
 - support of complex time signatures
 - support for rebeaming notes
- addition of other plugin tools
+- addition of other plugin tools
 ### v0.6.2 (20230205)
 - Code restructuring
  ### v0.6.1 (20230203)
