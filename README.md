@@ -3,7 +3,7 @@ A plugin for MuseScore that rebeams music, following preset or custom rules. Aut
 
 This plugin is still in a primitive testing stage, no warranty of any kind is provided.
 
-Please read the 'Usage' section below to get the most out of it
+Please read the [Usage](https://github.com/XiaoMigros/ReBeamer#Usage) section below to get the most out of it
 
 MuseScore 3.5 or later is required.
 
@@ -31,8 +31,8 @@ MuseScore 3.5 or later is required.
 - addition of other plugin tools
 ### v0.6.2 (20230205)
 - Code restructuring
- ### v0.6.1 (20230203)
- - Improved 8th beaming function
+### v0.6.1 (20230203)
+- Improved 8th beaming function
 ### v0.6.0 (20230202)
 - Beta release
 
@@ -53,5 +53,4 @@ Here are some things you can do to avoid issues with the plugin:
 * 2nd+ Voices: The plugin might not work correctly if there are any deleted rests in voices 2-4. If you don't want a rest to be seen, make it invisible instead.
 
 ### Customisation
-To create your own custom rules, see ['presets/timesig template'](https://github.com/XiaoMigros/beam-over-rests/blob/main/presets/timesig%20template). There you can define rules for in general or for specific time signatures.
-
+To create your own custom rules, see ['presets/timesig template'](https://github.com/XiaoMigros/ReBeamer/blob/main/presets/timesig%20template). There you can define rules for in general or for specific time signatures.
