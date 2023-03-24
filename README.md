@@ -15,14 +15,15 @@ MuseScore 3.5 or later is required.
  - Create your own custom rulesets
 
 ### Upcoming Features (by v1.0, presumably)
-- MuseScore 4 compatibility
+- Improved custom settings process
 - Bug fixes
-
-### Later release(s):
-- Autoadjustment of rest + beam positions
 - DockMode: rebeam the score automatically during the creation process
 
 ## Changelog
+### v0.8.0 (20230324)
+- MuseScore 4 support
+- minor code improvements
+- new loading screen appears if plugin takes longer than 1 second to run
 ### v0.7.0 (20230313)
 - completely rewritten beaming system
 - support of complex time signatures
@@ -42,7 +43,7 @@ For more help installing this plugin, visit [this page](https://musescore.org/en
 
 ## Usage
 
-Run the plugin from the bottom of the 'Tools' tab, or assign a shortcut to it in the Plugin Manager. The plugin will detect if there is a selection and apply itself accordingly (note: it will always apply itself to whole measures). MuseScore's Undo/Redo commands work as usual.
+Run the plugin from the 'Plugins' tab, or assign a shortcut to it in the Plugin Manager.The plugin will detect if there is a selection and apply itself accordingly (Note: it will always apply itself to whole measures). MuseScore's Undo/Redo commands work as usual.
 
 If the plugin crashes, an error message will appear at the end of the score.
 

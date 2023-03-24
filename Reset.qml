@@ -2,6 +2,9 @@
 // Copyright (C) 2023 XiaoMigros
 
 // Changelog:
+//	v0.8.0 (20230324):	MuseScore 4 support
+//						minor code improvements
+//						new loading screen appears if plugin takes longer than 1 second to run
 //	v0.7.0 (20230313):	completely rewritten beaming system
 //						support of complex time signatures
 //						support for rebeaming notes
@@ -31,8 +34,6 @@
 // Assets folder: contains other files needed by the plugin
 // Reset.qml: Retroactively undoes any changes made by this plugin
 // Simplify Tuplets.qml: A lightweight edit of the plugin that only focuses on tuplets
-
-//beamMode not available for MU4?? or beamMode available for notes only or different system
 
 import QtQuick 2.0;
 import MuseScore 3.0;
@@ -148,27 +149,15 @@ MuseScore {
 	}//validType
 	
 	function validRest(element) {
-		if (element && element.type == Element.REST) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.type == Element.REST)
 	}//validRest
 	
 	function validNote(element) {
-		if (element && (element.type == Element.NOTE || element.type == Element.CHORD)) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && (element.type == Element.NOTE || element.type == Element.CHORD))
 	}//validNote
 	
 	function validTuplet(element) {
-		if (element && element.tuplet) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.tuplet)
 	}
 	
 	function beamMode(tick, e, mode, type) {
@@ -273,7 +262,7 @@ MuseScore {
 		var c = curScore.newCursor()
 		
 		if (curScore.selection.isRange) {
-			console.log(curScore.selection.startTick, curScore.selection.endTick, curScore.selection.startStaff, curScore.selection.endStaff)
+			console.log(curScore.selection.startSegment, curScore.selection.endSegment, curScore.selection.startStaff, curScore.selection.endStaff)
 			startStaff = curScore.selection.startStaff
 			endStaff = curScore.selection.endStaff
 			c.rewind(Cursor.SELECTION_END)

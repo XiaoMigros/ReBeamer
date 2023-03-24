@@ -13,6 +13,8 @@ Item {
 		y: 10;
 		checked: true;
 		text: "Enabled";
+		onClicked: {active = checked}
+		Component.onCompleted: {active = checked}
 	}
 	
 	RowLayout {
@@ -22,7 +24,7 @@ Item {
 			id: helpButton;
 			text: "Help";
 			onClicked: {
-				Qt.openUrlExternally("https://github.com/xiaomigros/rebeamer#readme")
+				Qt.openUrlExternally("https://github.com/xiaomigros/beam-over-rests#readme")
 			}//onClicked
 		}//Button
 		

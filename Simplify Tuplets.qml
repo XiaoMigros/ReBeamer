@@ -2,6 +2,9 @@
 // Copyright (C) 2023 XiaoMigros
 
 // Changelog:
+//	v0.8.0 (20230324):	MuseScore 4 support
+//						minor code improvements
+//						new loading screen appears if plugin takes longer than 1 second to run
 //	v0.7.0 (20230313):	completely rewritten beaming system
 //						support of complex time signatures
 //						support for rebeaming notes
@@ -32,11 +35,10 @@
 // Reset.qml: Retroactively undoes any changes made by this plugin
 // Simplify Tuplets.qml: A lightweight edit of the plugin that only focuses on tuplets
 
-//beamMode not available for MU4?? or beamMode available for notes only or different system
-
 import QtQuick 2.0;
 import MuseScore 3.0;
 import "presets/tuplets.js" as TPS
+import "presets/musefourBM.js" as MU4
 
 MuseScore {
     description: (qsTr("This plugin simplifies tuplets where suitable.") + "\n" + 
@@ -150,38 +152,27 @@ MuseScore {
 	}//getDuration
 	
 	function validType(element) {
-		if (element && (element.type == Element.REST || element.type == Element.NOTE || element.type == Element.CHORD)) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && (element.type == Element.REST || element.type == Element.NOTE || element.type == Element.CHORD))
 	}//validType
 	
 	function validRest(element) {
-		if (element && element.type == Element.REST) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.type == Element.REST)
 	}//validRest
 	
 	function validNote(element) {
-		if (element && (element.type == Element.NOTE || element.type == Element.CHORD)) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && (element.type == Element.NOTE || element.type == Element.CHORD))
 	}//validNote
 	
 	function validTuplet(element) {
-		if (element && element.tuplet) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.tuplet)
 	}//validTuplet
 	
 	function beamMode(tick, e, mode, type) {
+		var newrules = (mode > 4) //used to make sure subdivisions on rests are shown in MU4 (rests follow new rules)
+		if (mscoreMajorVersion >= 4) {
+			mode = MU4.convertBeamMode(mode)
+		}
+		
 		if (validType(e) && validTuplet(e) && tick < (mstart[mno] + mlen[mno])) {
 			//type variables: whether to expose the subdivisions in rests (1), notes (2), none (0), or both (3).
 			
@@ -196,32 +187,42 @@ MuseScore {
 			//cursorr.voice = voice
 			//console.log("previous = " + cursorr.tick)
 			switch (type) {
-				case 0: {
-					console.log("not beaming " + smartTick(tick))
-					break;
-				}
 				case 1: {
 					if (validRest(e) || validRest(cursorr.element)) {
-						e.beamMode = mode
+						if (validRest(e) && mscoreMajorVersion >= 4 && newrules) {
+							cursorr.next()
+							if (cursorr.next() && validType(cursorr.element) && cursorr.tick < (mstart[mno] + mlen[mno])) {
+								cursorr.element.beamMode = mode
+							}
+						} else {
+							e.beamMode = mode
+						}
 						console.log("beamed rest " + smartTick(tick) + " to " + mode)
 					}
-					break;
+					break
 				}
 				case 2: {
 					if (validNote(e) && validNote(cursorr.element)) {
 						e.beamMode = mode
 						console.log("beamed note " + smartTick(tick) + " to " + mode)
 					}
-					break;
+					break
 				}
 				case 3: {
-					e.beamMode = mode
+					if (validRest(e) && mscoreMajorVersion >= 4 && newrules) {
+						cursorr.next()
+						if (cursorr.next() && validType(cursorr.element) && cursorr.tick < (mstart[mno] + mlen[mno])) {
+							cursorr.element.beamMode = mode
+						}
+					} else {
+						e.beamMode = mode
+					}
 					console.log("beamed " + smartTick(tick) + " to " + mode)
-					break;
+					break
 				}
 				default: {
 					console.log("error beaming")
-					break;
+					break
 				}
 			}//switch
 		}//if
@@ -448,8 +449,8 @@ MuseScore {
 					console.log("applied corrections to tuplet")
 				}//if beamTuplets
 				
-				//remove excessive brackets around tuplet
-				if (simplifyTuplets) {
+				//remove excessive brackets around tuplet | MuseScore 4 does this automatically
+				if (mscoreMajorVersion < 4 && simplifyTuplets) {
 					smartRewind(cursor, tupletStart)
 					var notes = []
 					var k = 0;
@@ -501,7 +502,7 @@ MuseScore {
 			curScore.selection.selectRange(cur.tick, cur.tick+1, cur.staffIdx, cur.staffIdx);
 		}
 		if (curScore.selection.isRange) {
-			console.log(curScore.selection.startTick, curScore.selection.endTick, curScore.selection.startStaff, curScore.selection.endStaff)
+			console.log(curScore.selection.startSegment, curScore.selection.endSegment, curScore.selection.startStaff, curScore.selection.endStaff)
 			startStaff = curScore.selection.startStaff
 			endStaff = curScore.selection.endStaff
 			c.rewind(Cursor.SELECTION_END)

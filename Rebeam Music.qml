@@ -2,6 +2,9 @@
 // Copyright (C) 2023 XiaoMigros
 
 // Changelog:
+//	v0.8.0 (20230324):	MuseScore 4 support
+//						minor code improvements
+//						new loading screen appears if plugin takes longer than 1 second to run
 //	v0.7.0 (20230313):	completely rewritten beaming system
 //						support of complex time signatures
 //						support for rebeaming notes
@@ -32,12 +35,13 @@
 // Reset.qml: Retroactively undoes any changes made by this plugin
 // Simplify Tuplets.qml: A lightweight edit of the plugin that only focuses on tuplets
 
-//beamMode not available for MU4?? or beamMode available for notes only or different system
-
 import QtQuick 2.0;
 import MuseScore 3.0;
+import QtQuick.Window 2.0
+import QtQuick.Controls 1.0
 import "presets/timesigs.js" as TS
 import "presets/tuplets.js" as TPS
+import "presets/musefourBM.js" as MU4
 import "assets"
 
 MuseScore {
@@ -49,7 +53,7 @@ MuseScore {
     menuPath: "Plugins." + qsTr("ReBeamer") + "." + qsTr("Rebeam Music")
 	
 	//settings vars
-	property bool	dockable:			false;
+	property bool	dockable:		false;
 	property bool	useCustomTimesigs:	true;
 	//timesig settings vars
 	property var eighthSplit		: []
@@ -93,21 +97,19 @@ MuseScore {
 	property var	voice;
 	property bool	tupletMode: false;
 	//dockmode vars
+	property bool	active: false;
 	property var	cur;
-	property var	prevCurTick:	false;
-	property bool	repeatTracker:	false;
+	property bool	busy:			false;
 	property var	testcountstate:	0;
-	property var	ele:	({'duration': {'numerator': false, 'denominator': false}, 'type': false})
-	property var	el;
-	property var	eled:	({'duration': null})
+	property var	tempMeasure: []
 	
 	Component.onCompleted : {
         if (mscoreMajorVersion >= 4) {
-			title = qsTr("Beam Over Rests")
+			title = qsTr("ReBeamer: Rebeam Music")
 			//thumbnailName = "logo.png"
 			categoryCode = "notes-rests"
         } //if
-		if (dockable == true) {
+		if (dockable) {
 			pluginType = "dock"
 			dockArea = "right"
 			implicitHeight = 150// necessary for dock widget to appear with nonzero height
@@ -119,32 +121,43 @@ MuseScore {
 	
 	onScoreStateChanged: {
 		//state.selectionChanged
-		if (dockable) {
-			//el = curScore ? curScore.selection.elements[0] : null;
-			testcountstate += 1;
-			console.log("====state changed: " + testcountstate + " ==========")
-			//2 bugs need fixing: 1: if el is indiscernable from ele 2: changing duration
-			//repeatTracker = true; //stops function affecting itself
-				if (dockEnabled.checked == true && curScore.selection.elements[0] && ! state.undoRedo && repeatTracker == false) { //undoredo crashes it a lot
-					repeatTracker = true; //stops function affecting itself
-					el = curScore.selection.elements[0]
-					if (validType(el)) {
-						console.log(cur.tick)
-						console.log(state.startLayoutTick)
-						if (cur.element.type != ele.type || getDuration(cur.element) != getDuration(eled) || cur.tick != prevCurTick) {
-							prevCurTick = cur.tick;
-							ele = el
-							eled.duration = getDuration(cur.element)
-							curScore.startCmd();
-							beamOverRests();
-							curScore.endCmd();
-						}
-					}
-					repeatTracker = false;
-				}
-			//repeatTracker = false;
+		if (curScore && dockable) {
+			if (active && (curScore.selection.elements.length == 1 && validType(curScore.selection.elements[0]))
+				&& ! state.undoRedo && ! busy && ! curScore.selection.isRange && (cur.measure && measuresChanged())) {
+				busy = true //stops function affecting itself
+				var elem = curScore.selection.elements[0]
+				curScore.selection.selectRange(cur.measure.firstSegment.tick, (cur.measure.firstSegment.tick +
+					(division * 4.0  * cur.measure.timesigActual.numerator / cur.measure.timesigActual.denominator)), cur.staffIdx, cur.staffIdx)
+				curScore.startCmd()
+				beamOverRests()
+				curScore.endCmd()
+				curScore.selection.select(elem)
+				busy = false
+			}
 		}//if dockable
 	}//onScoreStateChanged
+	
+	function measuresChanged() {
+		var curs = curScore.newCursor()
+		curs.rewindToTick(cur.measure.firstSegment.tick)
+		curs.staffIdx = cur.staffIdx
+		curs.voice = cur.voice
+		var tempmap = []
+		var beats = []
+		var beammodes = []
+		var endtick = curs.measure.lastSegment.tick
+		while (curs.tick <= endtick && curs.segment) {
+			beats.push(getDuration(curs.element))
+			beammodes.push(curs.element.beamMode)
+			curs.next()
+		}
+		tempmap.push(beats)
+		tempmap.push(beammodes)
+		if (tempmap != tempMeasure) {
+			tempMeasure = tempmap
+			return true
+		} else {return false}
+	}
 	
 	function mapMeasures() {
 		//this function maps every measure in the score, their start ticks, their length, and their time signature.
@@ -212,38 +225,27 @@ MuseScore {
 	}//getDuration
 	
 	function validType(element) {
-		if (element && (element.type == Element.REST || element.type == Element.NOTE || element.type == Element.CHORD)) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && (element.type == Element.REST || element.type == Element.NOTE || element.type == Element.CHORD))
 	}//validType
 	
 	function validRest(element) {
-		if (element && element.type == Element.REST) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.type == Element.REST)
 	}//validRest
 	
 	function validNote(element) {
-		if (element && (element.type == Element.NOTE || element.type == Element.CHORD)) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && (element.type == Element.NOTE || element.type == Element.CHORD))
 	}//validNote
 	
 	function validTuplet(element) {
-		if (element && element.tuplet) {
-			return true;
-		} else {
-			return false;
-		}
+		return (element && element.tuplet)
 	}//validTuplet
 	
 	function beamMode(tick, e, mode, type) {
+		var newrules = (mode > 4) //used to make sure subdivisions on rests are shown in MU4 (rests follow new rules)
+		if (mscoreMajorVersion >= 4) {
+			mode = MU4.convertBeamMode(mode)
+		}
+	
 		if (validType(e) && (tupletMode || ! e.tuplet) && tick < (mstart[mno] + mlen[mno])) {
 			//type variables: whether to expose the subdivisions in rests (1), notes (2), none (0), or both (3).
 			
@@ -260,30 +262,44 @@ MuseScore {
 			switch (type) {
 				case 0: {
 					console.log("not beaming " + smartTick(tick))
-					break;
+					break
 				}
 				case 1: {
 					if (validRest(e) || validRest(cursorr.element)) {
-						e.beamMode = mode
+						if (validRest(e) && mscoreMajorVersion >= 4 && newrules) {
+							cursorr.next()
+							if (cursorr.next() && validType(cursorr.element) && cursorr.tick < (mstart[mno] + mlen[mno])) {
+								cursorr.element.beamMode = mode
+							}
+						} else {
+							e.beamMode = mode
+						}
 						console.log("beamed rest " + smartTick(tick) + " to " + mode)
 					}
-					break;
+					break
 				}
 				case 2: {
 					if (validNote(e) && validNote(cursorr.element)) {
 						e.beamMode = mode
 						console.log("beamed note " + smartTick(tick) + " to " + mode)
 					}
-					break;
+					break
 				}
 				case 3: {
-					e.beamMode = mode
+					if (validRest(e) && mscoreMajorVersion >= 4 && newrules) {
+						cursorr.next()
+						if (cursorr.next() && validType(cursorr.element) && cursorr.tick < (mstart[mno] + mlen[mno])) {
+							cursorr.element.beamMode = mode
+						}
+					} else {
+						e.beamMode = mode
+					}
 					console.log("beamed " + smartTick(tick) + " to " + mode)
-					break;
+					break
 				}
 				default: {
 					console.log("error beaming")
-					break;
+					break
 				}
 			}//switch
 		}
@@ -387,6 +403,11 @@ MuseScore {
 		}
 		console.log("applied non-tuplet beaming")
 		applyCorrections(mstart[mno], mstart[mno] + mlen[mno], cursor)
+		
+		//smartRewind(cursor, mstart[mno])
+		//while (mscoreMajorVersion == 4 && cursor.next() && cursor.tick < mstart[mno] + mlen[mno]) {
+		//	beamMode(cursor.tick, cursor.element, mno, beamType)
+		//}
 		
 	}//applybeamingrules
 	
@@ -682,8 +703,8 @@ MuseScore {
 					console.log("applied corrections to tuplet")
 				}//if beamTuplets
 				
-				//remove excessive brackets around tuplet
-				if (simplifyTuplets) {
+				//remove excessive brackets around tuplet | MuseScore 4 does this automatically
+				if (mscoreMajorVersion < 4 && simplifyTuplets) {
 					smartRewind(cursor, tupletStart)
 					var notes = []
 					var k = 0;
@@ -724,7 +745,7 @@ MuseScore {
 		console.log("positioning beams..")
         while (curso.element && curso.tick < (mstart[mno]+mlen[mno])) {
             var e = curso.element;
-            if (validRest(e) && e.beam) {
+            if (validRest(e)) {
                 console.log(e.beamPos + " BWmpos")
             }//if
             //else {console.log("no beam")}
@@ -747,14 +768,17 @@ MuseScore {
 	} //onrun
 	
 	function beamOverRests() {
+		
+		if (! dockable) {
+			loadtimer.start()
+		}
 	
 		var c = curScore.newCursor()
 		
 		if (! curScore.selection.isRange && (dockable && validType(cur.element))) {
-			curScore.selection.selectRange(cur.tick, cur.tick+1, cur.staffIdx, cur.staffIdx);
+			curScore.selection.selectRange(cur.tick, cur.tick+2, cur.staffIdx, cur.staffIdx);
 		}
 		if (curScore.selection.isRange) {
-			console.log(curScore.selection.startTick, curScore.selection.endTick, curScore.selection.startStaff, curScore.selection.endStaff)
 			startStaff = curScore.selection.startStaff
 			endStaff = curScore.selection.endStaff
 			c.rewind(Cursor.SELECTION_END)
@@ -762,7 +786,7 @@ MuseScore {
 				lm = curScore.lastMeasure.firstSegment.tick;
 			} else {
 				lm = c.measure.firstSegment.tick;
-			}//else
+			}
         } else {
 			fullScore = true;
             startStaff = 0; // start with 1st staff
@@ -771,15 +795,15 @@ MuseScore {
 		}
             
         mapMeasures()
-        curScore.appendMeasures(1); //safety against weird ticks with end of score stuff, removed later on
+        curScore.appendMeasures(1) //safety against weird ticks with end of score stuff, removed later on
 		
         //error message, visible to end user in the score
-        var msg  = newElement(Element.SYSTEM_TEXT);
+        var msg  = newElement(Element.SYSTEM_TEXT)
         msg.text = qsTr("An error with the\nplugin has occured.")
-        msg.size = 12;
-        msg.placement = Placement.ABOVE;
-        c.rewindToTick(curScore.lastMeasure.firstSegment.tick);
-        c.add(msg);
+        msg.size = 12
+        msg.placement = Placement.ABOVE
+        c.rewindToTick(curScore.lastMeasure.firstSegment.tick)
+        c.add(msg)
             
 		for (staff = startStaff; staff < endStaff; staff++) {
 			console.log("In staff " + (staff+1))
@@ -794,16 +818,18 @@ MuseScore {
 				
 				while (mno < mstart.length) {
 					console.log("At measure " + (mno+1))
-					applyBeamingRules();
-					//posBeamRests(c.measure);
-					c.nextMeasure();
-					mno += 1;
+					applyBeamingRules()
+					//posBeamRests(c.measure)
+					c.nextMeasure()
+					mno += 1
 				} //while
 			} //for voice
 		} // for staff
 
-		removeElement(curScore.lastMeasure);
-        console.log("end");
+		removeElement(curScore.lastMeasure)
+		loadtimer.stop()
+		loadingW.visible = false
+        console.log("end")
         if (! dockable) {
 			smartQuit()
 		}
@@ -826,5 +852,36 @@ MuseScore {
 		var cursor5 = curScore.newCursor()
 		cursor5.rewindToTick(curScore.lastMeasure.firstSegment.tick);
 		cursor5.add(errtext);
+	}
+	
+	property var dots: "."
+	
+	ApplicationWindow {
+		id: loadingW
+		flags: Qt.SplashScreen | Qt.WindowStaysOnTopHint
+		Item {anchors.fill: parent; Label {id: loadtext; text: qsTr("Loading") + dots}}
+	}
+	
+	Timer {
+        interval: 1000 // ms
+		id: loadtimer
+        repeat: true
+        onTriggered: {
+			loadingW.visible = true
+			updateLoadingText()
+		}
+	}
+	
+	function updateLoadingText() {
+		switch (dots) {
+			case "...": {
+				dots = ""
+				break
+			}
+			default: {
+				dots += "."
+				break
+			}
+		}
 	}
 } //MuseScore
