@@ -1,4 +1,4 @@
-# [ReBeamer (v0.8.0)](https://musescore.org/en/project/rebeamer)
+# [ReBeamer (v0.8.1)](https://musescore.org/en/project/rebeamer)
 A plugin for MuseScore that rebeams music, following preset or custom rules. Automatically rebeam notes, rests, or tuplets!
 
 This plugin is still in a primitive testing stage, no warranty of any kind is provided.
@@ -20,6 +20,8 @@ MuseScore 3.5 or later is required.
 - DockMode: rebeam the score automatically during the creation process
 
 ## Changelog
+## v0.8.1 (20230329)
+- Bug fix for compound time signatures
 ### v0.8.0 (20230324)
 - MuseScore 4 support
 - minor code improvements
