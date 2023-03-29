@@ -1,8 +1,9 @@
 //===================================================//
 //Time Signature Presets for ReBeamer Plugin
 //Copyright (C) 2023 XiaoMigros
-//v 1.0
+//v 1.0.1
 //Changelog:
+//Bug fix for compound time sigs
 //===================================================//
 
 //returns settings in one big array
@@ -120,16 +121,16 @@ function getTimesigRules(numerator, denominator, custom) {
 		case 8: {
 			if (numerator % 3 == 0) {
 				sS8type = 3
-				for (var i = 0; i <= denominator / 3; ++i) {
+				for (var i = 0; i <= numerator / 3; ++i) {
 					eighthSplit.push(3*i);
 					sixteenthSplit.push(6*i);
 					thirtytwondSplit.push(12*i);
 				}
-				for (var i = 0; i <= denominator * 1; ++i) {
+				for (var i = 0; i <= numerator * 1; ++i) {
 					sixteenthSplit8.push(2*i)
 					thirtytwondSplit8.push(4*i)
 				}
-				for (var i = 0; i <= denominator * 2; ++i) {
+				for (var i = 0; i <= numerator * 2; ++i) {
 					thirtytwondSplit16.push(2*i)
 				}
 			} else {
@@ -154,15 +155,15 @@ function getTimesigRules(numerator, denominator, custom) {
 			eighthSplit.push(0)
 			eighthSplit.push(numerator / 2)
 			if (numerator % 3 == 0) {
-				for (var i = 0; i <= denominator / 3; ++i) {
+				for (var i = 0; i <= numerator / 3; ++i) {
 					sixteenthSplit.push(3*i);
 					thirtytwondSplit.push(6*i);
 				}
-				for (var i = 0; i <= denominator * 1; ++i) {
+				for (var i = 0; i <= numerator * 1; ++i) {
 					sixteenthSplit8.push(i)
 					thirtytwondSplit8.push(2*i)
 				}
-				for (var i = 0; i <= denominator * 2; ++i) {
+				for (var i = 0; i <= numerator * 2; ++i) {
 					thirtytwondSplit16.push(i)
 				}
 			} else {
